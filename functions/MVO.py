@@ -23,4 +23,5 @@ def MVO(mu, Q, targetRet):
     # x =           % Optimal asset weights
     # ----------------------------------------------------------------------
 
+    
     return x

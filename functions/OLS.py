@@ -16,7 +16,8 @@ def OLS(returns, factRet, lambda_, K):
     # mu =          % n x 1 vector of asset exp. returns
     # Q  =          % n x n asset covariance matrix
     # ----------------------------------------------------------------------
-
+    # deduct the risk free rate
+    returns = returns.sub(factRet['Mkt_RF'], axis=0)
     # add intercept
     factRet = np.hstack([np.ones((len(factRet), 1)), factRet])
     xtx = np.dot(factRet.T, factRet)
