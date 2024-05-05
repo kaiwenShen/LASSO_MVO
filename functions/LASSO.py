@@ -2,7 +2,7 @@ import cvxpy as cp
 import numpy as np
 from scipy.stats import gmean
 
-from functions.helper import cal_Q
+from functions.helper import cal_Q,adjusted_r_squared
 
 
 def LASSO(returns, factRet, lambda_, K):
@@ -31,4 +31,5 @@ def LASSO(returns, factRet, lambda_, K):
     factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta.value)
     Q = cal_Q(beta.value, factRet, returns - factRet @ beta.value)
-    return mu, Q
+    adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta.value), factRet.shape)
+    return mu, Q, adj_r2

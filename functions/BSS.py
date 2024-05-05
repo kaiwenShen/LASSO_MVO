@@ -1,6 +1,9 @@
 import cvxpy as cp
 import numpy as np
 import gurobipy as gp
+from scipy.stats import gmean
+
+from functions.helper import cal_Q, adjusted_r_squared
 
 
 def BSS(returns, factRet, lambda_, K):
@@ -18,5 +21,18 @@ def BSS(returns, factRet, lambda_, K):
     # mu =          % n x 1 vector of asset exp. returns
     # Q  =          % n x n asset covariance matrix
     # ----------------------------------------------------------------------
-
-    return mu, Q
+    factRet = np.hstack([np.ones((len(factRet), 1)), factRet])
+    beta = cp.Variable((factRet.shape[1], returns.shape[1]))
+    residual = returns.values - factRet @ beta
+    loss = cp.sum_squares(residual)
+    # Define the constraint (sparsity constraint on beta)
+    # Since cvxpy does not directly support l0-norm, we use a trick with auxiliary boolean variables
+    # Constraint to make sure that the number of true entries in aux_bool does not exceed K
+    sparsity_constraints = [cp.norm1(beta[:, j]) <= K for j in range(returns.shape[1])]
+    problem = cp.Problem(cp.Minimize(loss), constraints=sparsity_constraints)
+    problem.solve()
+    factor_mu = gmean(factRet + 1) - 1
+    mu = np.dot(factor_mu, beta.value)
+    Q = cal_Q(beta.value, factRet, returns - factRet @ beta.value)
+    adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta.value), factRet.shape)
+    return mu, Q, adj_r2
