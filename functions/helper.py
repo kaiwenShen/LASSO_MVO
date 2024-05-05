@@ -25,7 +25,8 @@ def r_squared(y, y_hat):
     return 1 - SS_res / SS_tot
 
 
-def adjusted_r_squared(y, y_hat, X):
-    n = X.shape[0]
-    k = X.shape[1]
+def adjusted_r_squared(y, y_hat, X_shape):
+    assert len(X_shape) == 2
+    n = X_shape[0]
+    k = X_shape[1]
     return 1 - (1 - r_squared(y, y_hat)) * (n - 1) / (n - k - 1)

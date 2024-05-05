@@ -1,6 +1,7 @@
 # import cvxpy as cp
 import numpy as np
-from functions.helper import geometric_return
+from functions.helper import geometric_return, r_squared, adjusted_r_squared
+
 
 def OLS(returns, factRet, lambda_, K):
     """
@@ -27,6 +28,8 @@ def OLS(returns, factRet, lambda_, K):
         beta = np.dot(np.linalg.pinv(xtx), xty)
     factor_mu = geometric_return(factRet)
     mu = np.dot(factor_mu, beta)
+    print(f'OLS insample R2: \n{r_squared(returns, np.dot(factRet, beta))}')
+    print(f'OLS insample adj R2: \n{adjusted_r_squared(returns, np.dot(factRet, beta), factRet.shape)}')
     # compute the vcov matrix with formula Q = B'FB + delta
     residuals = returns - np.dot(factRet, beta)
     delta = np.diag(np.var(residuals, axis=0))
