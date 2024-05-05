@@ -1,6 +1,7 @@
 # import cvxpy as cp
 import numpy as np
-from functions.helper import geometric_return, r_squared, adjusted_r_squared
+from functions.helper import r_squared, adjusted_r_squared
+from scipy.stats import gmean
 
 
 def OLS(returns, factRet, lambda_, K):
@@ -27,7 +28,7 @@ def OLS(returns, factRet, lambda_, K):
     except np.linalg.LinAlgError:
         # then we try sudo inverse
         beta = np.dot(np.linalg.pinv(xtx), xty)
-    factor_mu = geometric_return(factRet)
+    factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta)
     print(f'OLS insample R2: \n{r_squared(returns, np.dot(factRet, beta))}')
     print(f'OLS insample adj R2: \n{adjusted_r_squared(returns, np.dot(factRet, beta), factRet.shape)}')
