@@ -35,4 +35,6 @@ def BSS(returns, factRet, lambda_, K):
     mu = np.dot(factor_mu, beta.value)
     Q = cal_Q(beta.value, factRet, returns - factRet @ beta.value)
     adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta.value), factRet.shape)
+    tol = 1e-6
+    print(f'BSS avg numbers of beta >0: {np.sum(beta.value > tol) / 20}')
     return mu, Q, adj_r2
