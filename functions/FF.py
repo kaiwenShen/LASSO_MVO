@@ -1,4 +1,5 @@
 import numpy as np
+from functions.OLS import OLS
 
 
 def FF(returns, factRet, lambda_, K):
@@ -14,5 +15,6 @@ def FF(returns, factRet, lambda_, K):
     # mu =          % n x 1 vector of asset exp. returns
     # Q  =          % n x n asset covariance matrix
     # ----------------------------------------------------------------------
-
-    return mu, Q
+    # market excess return
+    mu, Q, adj_r2 = OLS(returns, factRet.loc[:, ['Mkt_RF', 'SMB', 'HML']], lambda_, K)
+    return mu, Q, adj_r2

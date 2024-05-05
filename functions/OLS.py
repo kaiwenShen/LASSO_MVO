@@ -1,6 +1,6 @@
 # import cvxpy as cp
 import numpy as np
-from functions.helper import adjusted_r_squared
+from functions.helper import adjusted_r_squared, cal_ols_beta, cal_Q
 from scipy.stats import gmean
 
 
@@ -17,22 +17,12 @@ def OLS(returns, factRet, lambda_, K):
     # mu =          % n x 1 vector of asset exp. returns
     # Q  =          % n x n asset covariance matrix
     # ----------------------------------------------------------------------
-    # deduct the risk free rate
-    returns = returns.sub(factRet['Mkt_RF'], axis=0)
     # add intercept
     factRet = np.hstack([np.ones((len(factRet), 1)), factRet])
-    xtx = np.dot(factRet.T, factRet)
-    xty = np.dot(factRet.T, returns)
-    try:
-        beta = np.dot(np.linalg.inv(xtx), xty)
-    except np.linalg.LinAlgError:
-        # then we try sudo inverse
-        beta = np.dot(np.linalg.pinv(xtx), xty)
+    # OLS calculation
+    beta, residuals = cal_ols_beta(returns, factRet)
     factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta)
-    # compute the vcov matrix with formula Q = B'FB + delta
-    residuals = returns - np.dot(factRet, beta)
-    delta = np.diag(np.var(residuals, axis=0))
-    F = np.cov(factRet, rowvar=False)
-    Q = np.dot(np.dot(beta.T, F), beta) + delta
+    # Q calculation
+    Q = cal_Q(beta, factRet, residuals)
     return mu, Q, adjusted_r_squared(returns, np.dot(factRet, beta), factRet.shape)
