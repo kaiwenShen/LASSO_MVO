@@ -1,6 +1,6 @@
-import cvxpy as cp
+# import cvxpy as cp
 import numpy as np
-
+from functions.helper import geometric_return
 
 def OLS(returns, factRet, lambda_, K):
     """
@@ -20,6 +20,16 @@ def OLS(returns, factRet, lambda_, K):
     factRet = np.hstack([np.ones((len(factRet), 1)), factRet])
     xtx = np.dot(factRet.T, factRet)
     xty = np.dot(factRet.T, returns)
-    beta = np.dot(np.linalg.inv(xtx), xty)
-
-    # return mu, Q
+    try:
+        beta = np.dot(np.linalg.inv(xtx), xty)
+    except np.linalg.LinAlgError:
+        # then we try sudo inverse
+        beta = np.dot(np.linalg.pinv(xtx), xty)
+    factor_mu = geometric_return(factRet)
+    mu = np.dot(factor_mu, beta)
+    # compute the vcov matrix with formula Q = B'FB + delta
+    residuals = returns - np.dot(factRet, beta)
+    delta = np.diag(np.var(residuals, axis=0))
+    F = np.cov(factRet, rowvar=False)
+    Q = np.dot(np.dot(beta.T, F), beta) + delta
+    return mu, Q
