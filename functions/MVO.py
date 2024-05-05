@@ -22,6 +22,13 @@ def MVO(mu, Q, targetRet):
 
     # x =           % Optimal asset weights
     # ----------------------------------------------------------------------
-
-    
+    x = cp.Variable(n)
+    # Objective function
+    obj = cp.Minimize(cp.quad_form(x, Q))
+    # Constraints
+    constraints = [-mu @ x <= -targetRet, x >= 0, cp.sum(x) == 1]
+    # Solve the problem
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    x = x.value
     return x
