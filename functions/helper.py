@@ -9,8 +9,8 @@ def r_squared(y, y_hat):
 
 def adjusted_r_squared(y, y_hat, X_shape):
     assert len(X_shape) == 2
-    n = X_shape[0]
-    k = X_shape[1]
+    n = X_shape[0] # number of observations
+    k = X_shape[1] # number of factors
     return 1 - (1 - r_squared(y, y_hat)) * (n - 1) / (n - k - 1)
 
 
