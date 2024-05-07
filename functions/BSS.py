@@ -1,12 +1,23 @@
 import cvxpy as cp
 import numpy as np
-import gurobipy as gp
 from scipy.stats import gmean
 
 from functions.helper import cal_Q, adjusted_r_squared
 
 
-def BSS(returns, factRet, lambda_, K):
+def bss_one_asset(y,x,k=4):
+    beta = cp.Variable(x.shape[1])
+    z = cp.Variable(x.shape[1], boolean=True)
+    resid = y - x @ beta
+    obj = cp.Minimize(cp.sum_squares(resid))
+    M_u=100
+    constraints = [-M_u*z <= beta, beta <= M_u*z]
+    constraints += [cp.sum(z) <= k]
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    return beta.value
+
+def BSS(returns, factRet,OOS_return,OOS_factRet, lambda_, K):
     """
     % Use this function for the BSS model. Note that you will not use
     % lambda in this model (lambda is for LASSO).
@@ -22,19 +33,15 @@ def BSS(returns, factRet, lambda_, K):
     # Q  =          % n x n asset covariance matrix
     # ----------------------------------------------------------------------
     factRet = np.hstack([np.ones((len(factRet), 1)), factRet])
-    beta = cp.Variable((factRet.shape[1], returns.shape[1]))
-    residual = returns.values - factRet @ beta
-    loss = cp.sum_squares(residual)
-    # Define the constraint (sparsity constraint on beta)
-    # Since cvxpy does not directly support l0-norm, we use a trick with auxiliary boolean variables
-    # Constraint to make sure that the number of true entries in aux_bool does not exceed K
-    sparsity_constraints = [cp.norm1(beta[:, j]) <= K for j in range(returns.shape[1])]
-    problem = cp.Problem(cp.Minimize(loss), constraints=sparsity_constraints)
-    problem.solve()
+    sol_beta= []
+    for i in range(returns.shape[1]):
+        beta = bss_one_asset(returns.iloc[:,i].values,factRet,K)
+        sol_beta.append(beta)
+    beta = np.array(sol_beta).T
     factor_mu = gmean(factRet + 1) - 1
-    mu = np.dot(factor_mu, beta.value)
-    Q = cal_Q(beta.value, factRet, returns - factRet @ beta.value)
-    adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta.value), factRet.shape)
-    tol = 1e-6
-    print(f'BSS avg numbers of beta >0: {np.sum(beta.value > tol) / 20}')
-    return mu, Q, adj_r2
+    mu = np.dot(factor_mu, beta)
+    Q = cal_Q(beta, factRet, returns - factRet @ beta)
+    adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta), factRet.shape)
+    OOS_factRet = np.hstack([np.ones((len(OOS_factRet), 1)), OOS_factRet])
+    oos_adj_r2 = adjusted_r_squared(OOS_return, np.dot(OOS_factRet, beta), OOS_factRet.shape)
+    return mu, Q, adj_r2, oos_adj_r2

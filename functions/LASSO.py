@@ -5,7 +5,7 @@ from scipy.stats import gmean
 from functions.helper import cal_Q,adjusted_r_squared
 
 
-def LASSO(returns, factRet, lambda_, K):
+def LASSO(returns, factRet,OOS_return,OOS_factRet, lambda_, K):
     """
     % Use this function for the LASSO model. Note that you will not use K
     % in this model (K is for BSS).
@@ -31,7 +31,8 @@ def LASSO(returns, factRet, lambda_, K):
     factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta.value)
     Q = cal_Q(beta.value, factRet, returns - factRet @ beta.value)
+    # calculate adjusted r2
     adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta.value), factRet.shape)
-    tol = 1e-6
-    print(f'LASSO avg numbers of beta >0: {np.sum(beta.value > tol)/20}')
-    return mu, Q, adj_r2
+    OOS_factRet = np.hstack([np.ones((len(OOS_factRet), 1)), OOS_factRet])
+    oos_adj_r2 = adjusted_r_squared(OOS_return, np.dot(OOS_factRet, beta.value), OOS_factRet.shape)
+    return mu, Q, adj_r2, oos_adj_r2
