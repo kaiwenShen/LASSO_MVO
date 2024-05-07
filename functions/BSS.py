@@ -2,7 +2,7 @@ import cvxpy as cp
 import numpy as np
 from scipy.stats import gmean
 
-from functions.helper import cal_Q, adjusted_r_squared_w_0
+from functions.helper import cal_Q, adjusted_r_squared_w_0,cal_vcov
 
 
 def bss_one_asset(y, x, k=4):
@@ -10,7 +10,7 @@ def bss_one_asset(y, x, k=4):
     z = cp.Variable(x.shape[1], boolean=True)
     resid = y - x @ beta
     obj = cp.Minimize(cp.sum_squares(resid))
-    M_u = 100
+    M_u = 10000
     constraints = [-M_u * z <= beta, beta <= M_u * z]
     constraints += [cp.sum(z) <= k]
     prob = cp.Problem(obj, constraints)
@@ -42,6 +42,7 @@ def BSS(returns, factRet, OOS_return, OOS_factRet, lambda_, K):
     factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta)
     Q = cal_Q(beta, factRet, returns - factRet @ beta)
+    # Q = cal_vcov(returns)
     adj_r2 = adjusted_r_squared_w_0(returns.values, np.dot(factRet, beta), beta, factRet.shape)
     OOS_factRet = np.hstack([np.ones((len(OOS_factRet), 1)), OOS_factRet])
     oos_adj_r2 = adjusted_r_squared_w_0(OOS_return.values, np.dot(OOS_factRet, beta), beta, OOS_factRet.shape)

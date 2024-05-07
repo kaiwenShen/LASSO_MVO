@@ -1,6 +1,6 @@
 # import cvxpy as cp
 import numpy as np
-from functions.helper import adjusted_r_squared, cal_ols_beta, cal_Q
+from functions.helper import adjusted_r_squared, cal_ols_beta, cal_Q,cal_vcov
 from scipy.stats import gmean
 
 
@@ -25,6 +25,7 @@ def OLS(returns, factRet, OOS_return, OOS_factRet, lambda_, K):
     mu = np.dot(factor_mu, beta)
     # Q calculation
     Q = cal_Q(beta, factRet, residuals)
+    # Q = cal_vcov(returns)
     adj_r2 = adjusted_r_squared(returns, np.dot(factRet, beta), factRet.shape)
     OOS_factRet = np.hstack([np.ones((len(OOS_factRet), 1)), OOS_factRet])
     oos_adj_r2 = adjusted_r_squared(OOS_return, np.dot(OOS_factRet, beta), OOS_factRet.shape)
