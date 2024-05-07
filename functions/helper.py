@@ -49,3 +49,6 @@ def cal_Q(beta, factRet, residuals):
     delta = np.diag(np.var(residuals, axis=0))
     Q = np.dot(np.dot(beta.T, F), beta) + delta
     return Q
+
+def cal_vcov(returns):
+    return np.cov(returns, rowvar=False)
