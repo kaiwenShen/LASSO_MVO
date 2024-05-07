@@ -10,13 +10,12 @@ def bss_one_asset(y, x, k=4):
     z = cp.Variable(x.shape[1], boolean=True)
     resid = y - x @ beta
     obj = cp.Minimize(cp.sum_squares(resid))
-    M_u = 10000
+    M_u = 9
     constraints = [-M_u * z <= beta, beta <= M_u * z]
     constraints += [cp.sum(z) <= k]
     prob = cp.Problem(obj, constraints)
     prob.solve()
     return beta.value
-
 
 def BSS(returns, factRet, OOS_return, OOS_factRet, lambda_, K):
     """
@@ -39,6 +38,11 @@ def BSS(returns, factRet, OOS_return, OOS_factRet, lambda_, K):
         beta = bss_one_asset(returns.iloc[:, i].values, factRet, K)
         sol_beta.append(beta)
     beta = np.array(sol_beta).T
+    # print how many beta is non-zero
+    if np.sum(beta != 0) != K*returns.shape[1]:
+        print('Warning: BSS did not find the desired number of non-zero betas')
+        print('correct number of non-zero betas:', K*returns.shape[1])
+        print('number of non-zero betas found:', np.sum(beta != 0))
     factor_mu = gmean(factRet + 1) - 1
     mu = np.dot(factor_mu, beta)
     Q = cal_Q(beta, factRet, returns - factRet @ beta)
