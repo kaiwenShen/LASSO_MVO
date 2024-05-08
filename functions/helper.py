@@ -9,8 +9,8 @@ def r_squared(y, y_hat):
 
 def adjusted_r_squared(y, y_hat, X_shape):
     assert len(X_shape) == 2
-    n = X_shape[0] # number of observations
-    k = X_shape[1] # number of factors
+    n = X_shape[0]  # number of observations
+    k = X_shape[1]  # number of factors
     return 1 - (1 - r_squared(y, y_hat)) * (n - 1) / (n - k - 1)
 
 
@@ -46,9 +46,13 @@ def cal_ols_beta(returns, factRet):
 def cal_Q(beta, factRet, residuals):
     """compute the vcov matrix with formula Q = B'FB + delta"""
     F = np.cov(factRet, rowvar=False)
-    delta = np.diag(np.var(residuals, axis=0))
+    tol = 1e-6
+    dof_penalty = np.apply_along_axis(lambda x: np.sum(np.abs(x) > tol), axis=0, arr=beta)
+    dof_penalty = 1 / (20 - dof_penalty)
+    delta = np.diag(dof_penalty*np.var(residuals, axis=0))
     Q = np.dot(np.dot(beta.T, F), beta) + delta
     return Q
+
 
 def cal_vcov(returns):
     return np.cov(returns, rowvar=False)
