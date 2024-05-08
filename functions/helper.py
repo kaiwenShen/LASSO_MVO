@@ -48,7 +48,7 @@ def cal_Q(beta, factRet, residuals):
     F = np.cov(factRet, rowvar=False)
     tol = 1e-6
     dof_penalty = np.apply_along_axis(lambda x: np.sum(np.abs(x) > tol), axis=0, arr=beta)
-    dof_penalty = 1 / (48 - dof_penalty)
+    dof_penalty = 1 / (48 - dof_penalty - 1)
     delta = np.diag(dof_penalty*np.var(residuals, axis=0))
     Q = np.dot(np.dot(beta.T, F), beta) + delta
     return Q
