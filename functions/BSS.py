@@ -38,8 +38,8 @@ def BSS(returns, factRet, OOS_return, OOS_factRet, lambda_, K):
         beta = bss_one_asset(returns.iloc[:, i].values, factRet, K)
         sol_beta.append(beta)
     beta = np.array(sol_beta).T
-    # print how many beta is non-zero
     if np.sum(beta != 0) != K*returns.shape[1]:
+        # print warning that upper/lower bound is incorrect
         print('Warning: BSS did not find the desired number of non-zero betas')
         print('correct number of non-zero betas:', K*returns.shape[1])
         print('number of non-zero betas found:', np.sum(beta != 0))
